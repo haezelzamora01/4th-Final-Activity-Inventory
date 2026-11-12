@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Inventory Management System</title>
+<style>
+:root{--bg:#f3f3f3;--panel:#fff;--line:#d9d9d9;--text:#1b1b1b;--muted:#605e5c;--accent:#0f6cbd;--accent-d:#0b5a9e;--danger:#c42b1c;--warn:#9d5d00;--side:#202a36;--side-t:#dfe6ee}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{font-family:"Segoe UI",system-ui,sans-serif;font-size:14px;color:var(--text);background:#6b7b8c;display:flex;align-items:center;justify-content:center;padding:16px}
+.win{width:min(1180px,100%);height:min(780px,calc(100vh - 32px));background:var(--bg);border:1px solid #444;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 12px 40px rgba(0,0,0,.35)}
+.title{height:34px;background:#fff;display:flex;align-items:center;justify-content:space-between;padding-left:12px;border-bottom:1px solid var(--line);font-size:13px}
+.title b{font-weight:600}
+.ctl{display:flex}
+.ctl span{width:46px;height:34px;display:flex;align-items:center;justify-content:center;font-size:13px;color:#333}
+.ctl span:hover{background:#e9e9e9}
+.ctl span:last-child:hover{background:#c42b1c;color:#fff}
+.menu{height:28px;background:#fff;border-bottom:1px solid var(--line);display:flex;padding:0 6px;position:relative}
+.menu>div{position:relative}
+.menu button{background:none;border:0;font:inherit;font-size:13px;padding:0 12px;height:28px;cursor:pointer}
+.menu button:hover{background:#eaeaea}
+.drop{display:none;position:absolute;top:28px;left:0;background:#fff;border:1px solid var(--line);min-width:170px;z-index:5;box-shadow:0 6px 16px rgba(0,0,0,.15)}
+.menu>div:hover .drop,.menu>div:focus-within .drop{display:block}
+.drop button{display:block;width:100%;text-align:left;height:30px}
+.body{flex:1;display:flex;min-height:0}
+.side{width:176px;background:var(--side);color:var(--side-t);display:flex;flex-direction:column;padding:12px 10px}
+.side h4{margin:4px 8px 10px;font-size:12px;font-weight:600;color:#93a4b6}
+.side button{background:none;border:0;color:inherit;font:inherit;text-align:left;padding:9px 12px;border-radius:4px;cursor:pointer;margin-bottom:2px;border-left:3px solid transparent}
+.side button:hover{background:rgba(255,255,255,.08)}
+.side button.on{background:rgba(255,255,255,.14);border-left-color:#60b0ff;color:#fff}
+.side .sp{flex:1}
+.main{flex:1;padding:14px 16px;overflow:auto;display:flex;flex-direction:column;gap:12px;min-width:0}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.card{background:var(--panel);border:1px solid var(--line);padding:10px 14px}
+.card small{color:var(--muted)}
+.card div{font-size:24px;font-weight:600;margin-top:2px}
+.card.low div{color:var(--warn)}
+.bar{display:flex;gap:8px}
+.bar input{flex:1}
+input,select{font:inherit;height:32px;border:1px solid #8a8886;border-bottom-color:#605e5c;padding:0 8px;background:#fff;min-width:0}
+input:focus,select:focus{outline:2px solid var(--accent);outline-offset:-1px}
+.btn{font:inherit;height:32px;padding:0 16px;border:1px solid #8a8886;background:#fff;cursor:pointer}
+.btn:hover{background:#f0f0f0}
+.btn.p{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.p:hover{background:var(--accent-d)}
+.btn.d{color:var(--danger)}
+.btn.sm{height:26px;padding:0 10px;font-size:12px}
+.tbl{background:var(--panel);border:1px solid var(--line);flex:1;min-height:150px;overflow:auto}
+table{width:100%;border-collapse:collapse}
+th{position:sticky;top:0;background:#f7f7f7;text-align:left;font-weight:600;padding:8px 10px;border-bottom:1px solid var(--line)}
+td{padding:7px 10px;border-bottom:1px solid #ececec}
+tr:hover td{background:#f5faff}
+tr.sel td{background:#e1effb}
+td.lowq{color:var(--warn);font-weight:600}
+td.act{white-space:nowrap}
+.empty{padding:28px;text-align:center;color:var(--muted)}
+.form{background:var(--panel);border:1px solid var(--line);padding:12px 14px}
+.form h3{margin:0 0 10px;font-size:14px;font-weight:600}
+.fg{display:grid;grid-template-columns:repeat(4,1fr) auto;gap:10px 12px;align-items:end}
+.fg label{display:flex;flex-direction:column;gap:3px;font-size:12px;color:var(--muted)}
+.fg .btns{display:flex;gap:8px}
+.status{height:24px;background:#fff;border-top:1px solid var(--line);display:flex;justify-content:space-between;padding:0 12px;align-items:center;font-size:12px;color:var(--muted)}
+.dlg{position:absolute;inset:0;background:rgba(0,0,0,.35);display:none;align-items:center;justify-content:center;z-index:10}
+.dlg.show{display:flex}
+.dlg .box{background:#fff;border:1px solid #888;width:340px;box-shadow:0 10px 30px rgba(0,0,0,.3)}
+.dlg h3{margin:0;padding:12px 16px;font-size:14px;border-bottom:1px solid var(--line)}
+.dlg p{margin:0;padding:16px}
+.dlg .row{display:flex;justify-content:flex-end;gap:8px;padding:10px 16px;background:#f3f3f3}
+.win{position:relative}
+@media(max-width:900px){.fg{grid-template-columns:repeat(2,1fr)}.cards{grid-template-columns:1fr}.side{width:130px}}
+</style>
+</head>
+<body>
+<div class="win">
+  <div class="title"><b>Inventory Management System</b><div class="ctl"><span>&#8211;</span><span>&#9633;</span><span>&#10005;</span></div></div>
+  <div class="menu">
+    <div><button>File</button><div class="drop"><button id="mExport">Export to CSV</button><button id="mReset">Reset sample data</button></div></div>
+    <div><button>Edit</button><div class="drop"><button id="mNew">New item</button><button id="mClear">Clear form</button></div></div>
+    <div><button>View</button><div class="drop"><button data-view="all">All items</button><button data-view="low">Low stock only</button></div></div>
+    <div><button>Reports</button><div class="drop"><button id="mReport">Stock value report</button></div></div>
+    <div><button>Help</button><div class="drop"><button id="mHelp">About</button></div></div>
+  </div>
+  <div class="body">
+    <aside class="side">
+      <h4>Menu</h4>
+      <button class="on" data-view="all">Dashboard</button>
+      <button data-view="all">Products</button>
+      <button data-view="low">Low stock</button>
+      <button id="sIn">Stock in</button>
+      <button id="sOut">Stock out</button>
+      <button id="sReport">Reports</button>
+      <div class="sp"></div>
+      <button id="logout">Logout</button>
+    </aside>
+    <section class="main">
+      <div class="cards">
+        <div class="card"><small>Total items</small><div id="cTotal">0</div></div>
+        <div class="card low"><small>Low stock</small><div id="cLow">0</div></div>
+        <div class="card"><small>Stock value</small><div id="cVal">0</div></div>
+      </div>
+      <div class="bar">
+        <input id="search" placeholder="Search product name or code">
+        <button class="btn" id="btnSearch">Search</button>
+        <button class="btn p" id="btnAdd">+ Add item</button>
+      </div>
+      <div class="tbl">
+        <table>
+          <thead><tr><th>ID</th><th>Product name</th><th>Category</th><th>Supplier</th><th>Qty</th><th>Price</th><th>Actions</th></tr></thead>
+          <tbody id="rows"></tbody>
+        </table>
+        <div class="empty" id="empty" hidden>No items found. Add your first item below.</div>
+      </div>
+      <div class="form">
+        <h3 id="formTitle">Item details</h3>
+        <div class="fg">
+          <label>Product name<input id="fName"></label>
+          <label>Category<select id="fCat"><option>Supplies</option><option>Office</option><option>Electronics</option><option>Furniture</option><option>Other</option></select></label>
+          <label>Supplier<select id="fSup"><option>Metro Supply Co.</option><option>Bulacan Traders</option><option>Prime Office Depot</option><option>Other</option></select></label>
+          <label>Quantity<input id="fQty" type="number" min="0" step="1"></label>
+          <label>Price<input id="fPrice" type="number" min="0" step="0.01"></label>
+          <div class="btns" style="grid-column:1/-1;justify-content:flex-end">
+            <button class="btn p" id="btnSave">Save</button>
+            <button class="btn" id="btnClear">Clear</button>
+            <button class="btn" id="btnCancel">Cancel</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+  <div class="status"><span id="statMsg">Ready</span><span>Logged in as Admin</span></div>
+
+  <div class="dlg" id="dlg"><div class="box"><h3 id="dTitle"></h3><p id="dMsg"></p><div class="row" id="dRow"></div></div></div>
+</div>
+
+<script>
+var LOW=10, KEY="ims_items_v1", items=[], editId=null, view="all", sel=null;
+var sample=[
+ {id:1,name:"Notebook",cat:"Supplies",sup:"Metro Supply Co.",qty:50,price:45},
+ {id:2,name:"Ballpen (blue)",cat:"Supplies",sup:"Metro Supply Co.",qty:200,price:8},
+ {id:3,name:"Printer ink",cat:"Office",sup:"Prime Office Depot",qty:6,price:350},
+ {id:4,name:"Stapler",cat:"Office",sup:"Bulacan Traders",qty:14,price:120},
+ {id:5,name:"USB flash drive 32GB",cat:"Electronics",sup:"Prime Office Depot",qty:8,price:299}
+];
+function load(){try{var s=localStorage.getItem(KEY);items=s?JSON.parse(s):sample.slice()}catch(e){items=sample.slice()}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(items))}catch(e){}}
+var $=function(i){return document.getElementById(i)};
+function pad(n){return ("000"+n).slice(-3)}
+function money(n){return Number(n).toLocaleString("en-PH",{minimumFractionDigits:2,maximumFractionDigits:2})}
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+function msg(t){$("statMsg").textContent=t}
+
+function render(){
+  var q=$("search").value.trim().toLowerCase();
+  var list=items.filter(function(it){
+    if(view==="low"&&it.qty>LOW)return false;
+    return !q||it.name.toLowerCase().indexOf(q)>-1||pad(it.id).indexOf(q)>-1;
+  });
+  $("rows").innerHTML=list.map(function(it){
+    return '<tr data-id="'+it.id+'" class="'+(sel===it.id?"sel":"")+'"><td>'+pad(it.id)+'</td><td>'+esc(it.name)+'</td><td>'+esc(it.cat)+'</td><td>'+esc(it.sup)+'</td><td class="'+(it.qty<=LOW?"lowq":"")+'">'+it.qty+'</td><td>'+money(it.price)+'</td><td class="act"><button class="btn sm" data-a="edit" data-id="'+it.id+'">Edit</button> <button class="btn sm d" data-a="del" data-id="'+it.id+'">Delete</button></td></tr>';
+  }).join("");
+  $("empty").hidden=list.length>0;
+  $("cTotal").textContent=items.reduce(function(a,b){return a+b.qty},0).toLocaleString();
+  $("cLow").textContent=items.filter(function(i){return i.qty<=LOW}).length;
+  $("cVal").textContent="PHP "+money(items.reduce(function(a,b){return a+b.qty*b.price},0));
+  var tabs=document.querySelectorAll(".side button[data-view]");
+  var done=false;
+  tabs.forEach(function(b){b.classList.remove("on")});
+  tabs.forEach(function(b){if(!done&&b.dataset.view===view){b.classList.add("on");done=true}});
+}
+
+function clearForm(){
+  editId=null;$("fName").value="";$("fQty").value="";$("fPrice").value="";
+  $("fCat").selectedIndex=0;$("fSup").selectedIndex=0;
+  $("formTitle").textContent="Item details";$("btnSave").textContent="Save";
+}
+function setSelect(el,v){for(var i=0;i<el.options.length;i++){if(el.options[i].text===v){el.selectedIndex=i;return}}}
+function startEdit(id){
+  var it=items.filter(function(x){return x.id===id})[0];if(!it)return;
+  editId=id;sel=id;$("fName").value=it.name;$("fQty").value=it.qty;$("fPrice").value=it.price;
+  setSelect($("fCat"),it.cat);setSelect($("fSup"),it.sup);
+  $("formTitle").textContent="Edit item "+pad(id);$("btnSave").textContent="Update";
+  $("fName").focus();render();msg("Editing item "+pad(id));
+}
+function dialog(title,text,buttons){
+  $("dTitle").textContent=title;$("dMsg").textContent=text;$("dRow").innerHTML="";
+  buttons.forEach(function(b){
+    var e=document.createElement("button");e.className="btn"+(b.p?" p":"");e.textContent=b.t;
+    e.onclick=function(){$("dlg").classList.remove("show");if(b.f)b.f()};$("dRow").appendChild(e);
+  });
+  $("dlg").classList.add("show");
+}
+function ok(title,text){dialog(title,text,[{t:"OK",p:true}])}
+
+function saveItem(){
+  var name=$("fName").value.trim(),qty=parseInt($("fQty").value,10),price=parseFloat($("fPrice").value);
+  if(!name){ok("Missing name","Enter a product name.");return}
+  if(isNaN(qty)||qty<0){ok("Invalid quantity","Enter a quantity of 0 or more.");return}
+  if(isNaN(price)||price<0){ok("Invalid price","Enter a price of 0 or more.");return}
+  var rec={name:name,cat:$("fCat").value,sup:$("fSup").value,qty:qty,price:price};
+  if(editId){
+    items=items.map(function(it){return it.id===editId?Object.assign({id:editId},rec):it});
+    msg("Item "+pad(editId)+" updated");
+  }else{
+    var nid=items.reduce(function(m,i){return Math.max(m,i.id)},0)+1;
+    items.push(Object.assign({id:nid},rec));msg("Item "+pad(nid)+" added");
+  }
+  save();clearForm();render();
+}
+function adjust(dir){
+  if(!sel){ok(dir>0?"Stock in":"Stock out","Select a row first, then choose "+(dir>0?"Stock in":"Stock out")+" again.");return}
+  var it=items.filter(function(x){return x.id===sel})[0];if(!it)return;
+  var n=parseInt(prompt((dir>0?"Add how many units to ":"Remove how many units from ")+it.name+"?","1"),10);
+  if(isNaN(n)||n<=0)return;
+  if(dir<0&&n>it.qty){ok("Not enough stock","Only "+it.qty+" units are available.");return}
+  it.qty+=dir*n;save();render();msg(it.name+": "+(dir>0?"+":"-")+n+" units");
+}
+function report(){
+  var tot=items.reduce(function(a,b){return a+b.qty*b.price},0);
+  var low=items.filter(function(i){return i.qty<=LOW}).map(function(i){return i.name}).join(", ")||"none";
+  ok("Stock value report","Items: "+items.length+". Total value: PHP "+money(tot)+". Low stock: "+low+".");
+}
+function exportCsv(){
+  var rows=[["ID","Name","Category","Supplier","Qty","Price"]].concat(items.map(function(i){return[pad(i.id),i.name,i.cat,i.sup,i.qty,i.price]}));
+  var csv=rows.map(function(r){return r.map(function(c){return '"'+String(c).replace(/"/g,'""')+'"'}).join(",")}).join("\n");
+  var a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));a.download="inventory.csv";a.click();msg("Exported inventory.csv");
+}
+function setView(v){view=v;render();msg(v==="low"?"Showing low stock items":"Showing all items")}
+
+$("rows").addEventListener("click",function(e){
+  var b=e.target.closest("button[data-a]"),tr=e.target.closest("tr");
+  if(b){
+    var id=parseInt(b.dataset.id,10);
+    if(b.dataset.a==="edit"){startEdit(id)}
+    else{
+      var it=items.filter(function(x){return x.id===id})[0];sel=id;render();
+      dialog("Delete item","Delete "+it.name+"? This cannot be undone.",[
+        {t:"Yes",p:true,f:function(){items=items.filter(function(x){return x.id!==id});sel=null;if(editId===id)clearForm();save();render();msg("Item deleted")}},
+        {t:"No"}]);
+    }
+  }else if(tr){sel=parseInt(tr.dataset.id,10);render()}
+});
+$("btnSave").onclick=saveItem;
+$("btnClear").onclick=function(){clearForm();msg("Form cleared")};
+$("btnCancel").onclick=function(){clearForm();sel=null;render();msg("Ready")};
+$("btnAdd").onclick=function(){clearForm();$("fName").focus();msg("Enter the new item details")};
+$("btnSearch").onclick=render;
+$("search").addEventListener("input",render);
+$("search").addEventListener("keydown",function(e){if(e.key==="Enter")render()});
+document.querySelectorAll("[data-view]").forEach(function(b){b.addEventListener("click",function(){setView(b.dataset.view)})});
+$("sIn").onclick=function(){adjust(1)};
+$("sOut").onclick=function(){adjust(-1)};
+$("sReport").onclick=report;$("mReport").onclick=report;
+$("mNew").onclick=$("btnAdd").onclick;$("mClear").onclick=$("btnClear").onclick;
+$("mExport").onclick=exportCsv;
+$("mReset").onclick=function(){dialog("Reset data","Replace all items with the sample data?",[{t:"Yes",p:true,f:function(){items=sample.slice();sel=null;clearForm();save();render();msg("Sample data restored")}},{t:"No"}])};
+$("mHelp").onclick=function(){ok("About","Inventory Management System. A CRUD demo: create, read, update, and delete items.")};
+$("logout").onclick=function(){dialog("Logout","Close the application?",[{t:"Yes",p:true,f:function(){msg("Logged out")}},{t:"No"}])};
+load();render();
+</script>
+</body>
+</html>

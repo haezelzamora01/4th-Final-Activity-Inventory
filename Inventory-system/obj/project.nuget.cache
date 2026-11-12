@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "dgSpecHash": "UMxLiAGEX+Y=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\Harroun\\Downloads\\Inventory-system\\InventoryManagementSystem.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\Harroun\\.nuget\\packages\\system.data.oledb\\10.0.14\\system.data.oledb.10.0.14.nupkg.sha512"
+  ],
+  "logs": []
+}
